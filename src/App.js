@@ -13,27 +13,27 @@ import './App.css';
 export default function App() {
     const music = useMusic();
     const [step, setStep] = useState(Number(localStorage.getItem('step')) || 0);
+    const [popup, setPopup] = useState(null);
 
-    const [popup, setPopup] = useState(null); // { message, onConfirm }
-
+    // массив шагов с компонентами
     const steps = [
-        <Intro onNext={nextStep} />,
-        <BuildPhrase onNext={nextStep} />,
-        <MemoryGame onNext={nextStep} />,
-        <Riddle onNext={nextStep} />,
-        <CatchHeart onNext={nextStep} />,
-        <Final />
+        { Component: Intro },
+        { Component: BuildPhrase },
+        { Component: MemoryGame },
+        { Component: Riddle },
+        { Component: CatchHeart },
+        { Component: Final }
     ];
 
-    function nextStep() {
+    const nextStep = () => {
         setStep(prev => {
-            const newStep = prev + 1;
+            const newStep = Math.min(prev + 1, steps.length - 1);
             localStorage.setItem('step', newStep);
             return newStep;
         });
-    }
+    };
 
-    function prevStep() {
+    const prevStep = () => {
         setPopup({
             message: 'Ты уверена, что хочешь вернуться назад?',
             onConfirm: () => {
@@ -45,9 +45,9 @@ export default function App() {
                 setPopup(null);
             }
         });
-    }
+    };
 
-    function skipStep() {
+    const skipStep = () => {
         setPopup({
             message: 'Ты уверена, что хочешь пропустить этот шаг?',
             onConfirm: () => {
@@ -55,7 +55,10 @@ export default function App() {
                 setPopup(null);
             }
         });
-    }
+    };
+
+    // динамический компонент текущего шага
+    const StepComponent = steps[step]?.Component;
 
     return (
         <div className="app">
@@ -99,7 +102,7 @@ export default function App() {
             )}
 
             {/* Текущий экран */}
-            {steps[step]}
+            {StepComponent && <StepComponent onNext={nextStep} />}
 
             {/* Попап */}
             {popup && <ConfirmPopup
